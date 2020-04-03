@@ -7,8 +7,9 @@
 
 typedef struct foo {
 	int val;
-	int balance;
+	int height;
 
+	foo* parent;
 	foo* left;
 	foo* right;
 }Node;
@@ -53,23 +54,27 @@ int height(Node* curr, int bal) {
 
 }
 
-//Calculates the balance factor for every node
-void treeBalance(Node* curr) {
-	curr->balance = height(curr->left, 0) - height(curr->right, 0);
-	if (curr->left)
-		treeBalance(curr->left);
-	if (curr->right)
-		treeBalance(curr->right);
+int getBalance(Node* curr) {
+	return height(curr->left, 0) - height(curr->right, 0);
+}
+
+void fixParent(Node* curr) {
+	if (!curr->parent)
+		return;
+	if (curr->parent->val < curr->val)
+		curr->parent->right = curr;
+	else
+		curr->parent->left = curr;
 }
 
 //Create a new node
-Node* newNode(int val) {
+Node* newNode(Node* parent, int val) {
 	Node* temp = (Node*)malloc(sizeof(Node));
 	temp->right = NULL;
 	temp->left = NULL;
 	temp->val = val;
+	temp->parent = parent;
 	return temp;
-
 }
 
 //Functions for rotations in our tree
@@ -79,6 +84,9 @@ Node* LLrotate(Node *curr) {
 
 	newRoot->right = curr;
 	newRoot->right->left = rightChild;
+	newRoot->parent = curr->parent;
+	curr->parent = newRoot;
+	fixParent(newRoot);
 	return newRoot;
 	
 }
@@ -88,6 +96,9 @@ Node* RRrotate(Node *curr) {
 
 	newRoot->left = curr;
 	newRoot->left->right = leftChild;
+	newRoot->parent = curr->parent;
+	curr->parent = newRoot;
+	fixParent(newRoot);
 	return newRoot;
 
 }
@@ -96,9 +107,13 @@ Node* LRrotate(Node *curr) {
 	Node* leftChild = newRoot->left;
 	Node* rightChild = newRoot->right;
 	newRoot->left = curr->left;
+	newRoot->left->parent = newRoot;
 	newRoot->right = curr;
 	newRoot->left->right = leftChild;
 	newRoot->right->left = rightChild;
+	newRoot->parent = curr->parent;
+	curr->parent = newRoot;
+	fixParent(newRoot);
 	return newRoot;
 }
 Node* RLrotate(Node *curr) {
@@ -106,50 +121,93 @@ Node* RLrotate(Node *curr) {
 	Node* leftChild = newRoot->left;
 	Node* rightChild = newRoot->right;
 	newRoot->right = curr->right;
+	curr->right->parent = newRoot;
 	newRoot->left = curr;
 	newRoot->left->right = leftChild;
 	newRoot->right->left = rightChild;
+	newRoot->parent = curr->parent;
+	curr->parent = newRoot;
+	fixParent(newRoot);
 	return newRoot;
+}
+
+Node* balance(Node* curr, int val) {
+	int bal;
+	while (curr->parent) {
+		curr = curr->parent;
+		bal = getBalance(curr);
+		if (bal < -1) {//R
+			if (val > curr->right->val) {//RR
+				return curr = RRrotate(curr);
+			}
+			else {
+				return curr = RLrotate(curr);
+			}
+		}
+		else if (bal > 1) {//L
+			if (val < curr->left->val) {//LL
+				return curr = LLrotate(curr);
+			}
+			else {
+				return curr = LRrotate(curr);
+			}
+		}
+	}
 }
 
 //Insert function
 Node* insert(Node *curr, int val) {
+	//Simple binary tree insertion
 	if (curr) {
 		if (curr->val > val) {
 			if (curr->left == NULL) {
-				curr->left = newNode(val);
+				curr->left = newNode(curr, val);
+				curr = balance(curr, val);
 			}
 			else {
-				insert(curr->left, val);
+				curr = insert(curr->left, val);
 			}
 		}
-		if (curr->val < val) {
+		else if (curr->val < val) {
 			if (curr->right == NULL) {
-				curr->right = newNode(val);
+				curr->right = newNode(curr, val);
+				curr = balance(curr, val);
 			}
 			else {
-				insert(curr->right, val);
+				curr = insert(curr->right, val);
 			}
 		}
 	}
 	else {
-		curr = newNode(val);
+		curr = newNode(NULL, val);
 	}
+	
+	while (curr->parent)
+		curr = curr->parent;
+
+	
+	/*
+	printf("\n____________%d\n",val);
+	print2DUtil(curr, 0);
+	*/
 	return curr;
 }
 
 //Search function
 Node* search(Node* curr, int x) {
-	if (!curr)
+	if (!curr) {
 		return NULL;
-	if (curr->val == x)
-		return curr;
-	else if (curr = search(curr->left, x))
-		return curr;
-	else if (curr = search(curr->right, x))
-		return curr;
-	else
-		return NULL;
+	}
+	else {
+		if (curr->val == x)
+			return curr;
+		if (curr->left)
+			return curr = search(curr->left, x);
+		if (curr->right)
+			return curr = search(curr->right, x);
+		else
+			return NULL;
+	}
 }
 
 //Random number generator for testing
@@ -160,23 +218,34 @@ int rando(int low, int high) {	//random numbers for testing
 int main() {
 	Node* start = NULL;
 
-	start = insert(start, 10);
-	start = insert(start, 30);
-	start = insert(start, 20);
+	int temp;
+	
+	for (int i = 0; i < 1000; i++) {
+		temp = rando(0, 1000);
+		if (!(search(start, temp)))
+			start = insert(start, temp);
+	}
+	
+
 	
 	/*
-	srand(time(NULL));
-	for (int i = 0; i < 10; i++)
-		start = insert(start, rando(0, 40));
-	treeBalance(start);
-	*/
-	print2DUtil(start, 0);
-	//temp = search(start, 30);
+	start = insert(start, 1);
+	start = insert(start, 3);
+	start = insert(start, 2);
 	start = RLrotate(start);
+	start = insert(start, 50);
+	start = insert(start, 51);
+	start->right = RRrotate(start->right);
 
-	//start->right = RRrotate(start->right);
 	printf("\n____________\n");
 	print2DUtil(start, 0);
+	*/
+	//RRrotate(start);
+	
+	
+	printf("\n____________%d\n", start->parent);
+	print2DUtil(start, 0);
+	
 
 	
 	return 0;
