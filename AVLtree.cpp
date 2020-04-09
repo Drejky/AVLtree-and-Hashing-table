@@ -144,14 +144,14 @@ Node* balance(Node* curr, int val) {
 }
 
 //Insert function
-Node* insert(Node *curr, int val) {
+Node* insertAVL(Node *curr, int val) {
 	//Recursively insert node until we find free spot for it
 	if (curr) {
 		if (curr->val > val) {
-			curr->left = insert(curr->left, val);
+			curr->left = insertAVL(curr->left, val);
 		}
 		else if (curr->val < val) {
-			curr->right = insert(curr->right, val);
+			curr->right = insertAVL(curr->right, val);
 		}
 	}
 	else {
@@ -175,7 +175,7 @@ Node* insert(Node *curr, int val) {
 }
 
 //The trees search function
-Node* search(Node* curr, int x) {
+Node* searchAVL(Node* curr, int x) {
 	while (curr) {
 		if (curr->val == x)
 			return curr;
@@ -185,9 +185,4 @@ Node* search(Node* curr, int x) {
 			curr = curr->left;
 	}
 	return NULL;
-}
-
-int main() {
-
-	return 0;
 }
