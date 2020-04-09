@@ -2,41 +2,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
-#define COUNT 10
-int flag = 0;
 
-typedef struct foo {
+typedef struct node {
 	int val;
 	int height;
 
-	foo* left;
-	foo* right;
+	node* left;
+	node* right;
 }Node;
-
-//Taken from geeks for geeks for testing, delete later
-void print2DUtil(Node *root, int space)
-{
-	// Base case 
-	if (root == NULL)
-		return;
-
-	// Increase distance between levels 
-	space += COUNT;
-
-	// Process right child first 
-	print2DUtil(root->right, space);
-
-	// Print current node after space 
-	// count 
-	printf("\n");
-	for (int i = COUNT; i < space; i++)
-		printf(" ");
-	printf("%d\n", root->val);
-
-	// Process left child 
-	print2DUtil(root->left, space);
-}
 
 //Simple function for comparing ints
 int max(int a, int b) {
@@ -46,29 +19,12 @@ int max(int a, int b) {
 		return b;
 }
 
+//Returns the height of a node, needed to return 0 if there is no node
 int height(Node* curr) {
 	if (!curr)
 		return 0;
 	else
 		return curr->height;
-}
-
-
-int treeBalance(Node* curr) {
-	int temp;
-	if (!curr)
-		return 0;
-	else {
-		temp = height(curr->left) - height(curr->right);
-		if (temp > 1 || temp < -1)
-			flag = 1;
-		curr->height = temp;
-	}
-	if (curr->right)
-		treeBalance(curr->right);
-	if (curr->left)
-		treeBalance(curr->left);
-
 }
 
 //Create a new node
@@ -77,98 +33,119 @@ Node* newNode(int val) {
 	temp->right = NULL;
 	temp->left = NULL;
 	temp->val = val;
-	temp->height = 0;
+	temp->height = 1;
 	return temp;
 }
 
 //Functions for rotations in our tree
 Node* LLrotate(Node *curr) {
+	//Save nodes that would otherwise be lost in temporary variables
 	Node* newRoot = curr->left;
 	Node* rightChild = newRoot->right;
 
+	//Preform the LL rotation
 	newRoot->right = curr;
 	newRoot->right->left = rightChild;
 
+	//Fix the heights of nodes that are affected
 	curr->height = 1 + max(height(curr->left), height(curr->right));
 	newRoot->height = 1 + max(height(newRoot->left), height(newRoot->right));
 	
+	//Return the root after rotation
 	return newRoot;
-	
 }
+
 Node* RRrotate(Node *curr) {
+	//Save nodes that would otherwise be lost in temporary variables
 	Node* newRoot = curr->right;
 	Node* leftChild = newRoot->left;
 
+	//Preform the RR rotation
 	newRoot->left = curr;
 	newRoot->left->right = leftChild;
 
+	//Fix the heights of nodes that are affected
 	curr->height = 1 + max(height(curr->left), height(curr->right));
 	newRoot->height = 1 + max(height(newRoot->left), height(newRoot->right));
 	
-
+	//Return the root after rotation
 	return newRoot;
-
 }
+
 Node* LRrotate(Node *curr) {
+	//Save nodes that would otherwise be lost in temporary variables
 	Node* newRoot = curr->left->right;
 	Node* leftChild = newRoot->left;
 	Node* rightChild = newRoot->right;
+
+	//Preform the LR rotation
 	newRoot->left = curr->left;
 	newRoot->right = curr;
 	newRoot->left->right = leftChild;
 	newRoot->right->left = rightChild;
 
+	//Fix the heights of nodes that are affected
 	curr->height = 1 + max(height(curr->left), height(curr->right));
 	newRoot->left->height = 1 + max(height(newRoot->left->left), height(newRoot->left->right));
 	newRoot->height = 1 + max(height(newRoot->left), height(newRoot->right));
 
+	//Return the root after rotation
 	return newRoot;
 }
+
 Node* RLrotate(Node *curr) {
+	//Save nodes that would otherwise be lost in temporary variables
 	Node* newRoot = curr->right->left;
 	Node* leftChild = newRoot->left;
 	Node* rightChild = newRoot->right;
+
+	//Preform the RL rotation
 	newRoot->right = curr->right;
 	newRoot->left = curr;
 	newRoot->left->right = leftChild;
 	newRoot->right->left = rightChild;
 
+	//Fix the heights of nodes that are affected
 	curr->height = 1 + max(height(curr->left), height(curr->right));
 	newRoot->right->height = 1 + max(height(newRoot->right->left), height(newRoot->right->right));
 	newRoot->height = 1 + max(height(newRoot->left), height(newRoot->right));
 
+	//Return the root after rotation
 	return newRoot;
 }
 
-
+//Function to check whether a node is ballanced and preform rotation if it isnt
 Node* balance(Node* curr, int val) {
-	int bal;
-	bal = height(curr->left) - height(curr->right);
-	if (bal < -1) {//R
-		if (val > curr->right->val) {//RR
-			return RRrotate(curr);
+	//Calculating the balance factor for node
+	int bal = height(curr->left) - height(curr->right);
+
+	//If node is unbalanced
+	if (bal > 1 || bal < -1) {
+		if (val > curr->val) {//R
+			if (val > curr->right->val) {//RR
+				return RRrotate(curr);
+			}
+			else if (val < curr->right->val) {//RL
+				return RLrotate(curr);
+			}
 		}
-		else if (val < curr->right->val) {
-			return RLrotate(curr);
+		else if (val < curr->val) {//L
+			if (val < curr->left->val) {//LL
+				return LLrotate(curr);
+			}
+			else if (val > curr->left->val) {//LR
+				return LRrotate(curr);
+			}
 		}
 	}
-	else if (bal > 1) {//L
-		if (val < curr->left->val) {//LL
-			return LLrotate(curr);
-		}
-		else if (val > curr->left->val) {
-			return LRrotate(curr);
-		}
-	}
+	//Otherwise return the node without performing rotations
 	else
 		return curr;
-
-	
 }
 
 //Insert function
 Node* insert(Node *curr, int val) {
-	//Simple binary tree insertion
+	//Recursively insert node until we find free spot for it
 	if (curr) {
 		if (curr->val > val) {
 			curr->left = insert(curr->left, val);
@@ -181,6 +158,8 @@ Node* insert(Node *curr, int val) {
 		return newNode(val);
 	}
 	
+	//After the node has been added, this code will be executed for every perent node of new node
+	//Fixing heights of all parent nodes
 	if (curr->val > val) {
 		curr->height = max(height(curr->left) + 1, height(curr));
 	}
@@ -188,76 +167,27 @@ Node* insert(Node *curr, int val) {
 		curr->height = max(height(curr), height(curr->right) + 1);
 	}
 
+	//Checking whether node is balanced, performing rotation otherwise
 	curr = balance(curr, val);
 
+	//returning possibly rotated node
 	return curr;
 }
 
-//Search function
+//The trees search function
 Node* search(Node* curr, int x) {
-	if (!curr) {
-		return NULL;
-	}
-	else {
+	while (curr) {
 		if (curr->val == x)
 			return curr;
-		if (curr->left)
-			return curr = search(curr->left, x);
-		if (curr->right)
-			return curr = search(curr->right, x);
+		else if (curr->val < x)
+			curr = curr->right;
 		else
-			return NULL;
+			curr = curr->left;
 	}
-}
-
-//Random number generator for testing
-int rando(int low, int high) {	//random numbers for testing
-	return rand() % (high - low + 1) + low;
-}
-
-void del_tree(Node* curr) {
-	if (!curr)
-		return;
-	if (curr->left)
-		del_tree(curr->left);
-	if (curr->right)
-		del_tree(curr->right);
-	free(curr);
+	return NULL;
 }
 
 int main() {
-	Node* start = NULL;
 
-	int temp;
-	
-	srand(time(NULL));
-	for (int i = 0; i < 1000000; i++) {
-		temp = rando(0, 2000000);
-		if (!(search(start, temp)))
-			start = insert(start, temp);
-	}
-	
-
-	
-	/*
-	start = insert(start, 1);
-	start = insert(start, 3);
-	start = insert(start, 2);
-	start = RLrotate(start);
-	start = insert(start, 50);
-	start = insert(start, 51);
-	start->right = RRrotate(start->right);
-
-	printf("\n____________\n");
-	print2DUtil(start, 0);
-	*/
-	//RRrotate(start);
-	
-	treeBalance(start);/*
-	printf("\n____________\n");
-	print2DUtil(start, 0);*/
-	printf("%d", flag);
-
-	del_tree(start);
 	return 0;
 }
