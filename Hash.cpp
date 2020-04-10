@@ -24,15 +24,39 @@ NodeH* newNodeH(int val) {
 	return temp;
 }
 
+NodeH** insertHash(int val, NodeH** table);
+
+NodeH** resizeTable(NodeH** table, int newSize) {
+	NodeH** newTable = (NodeH**)calloc(newSize + 1, sizeof(NodeH*));
+	newTable[0] = (NodeH*)malloc(sizeof(NodeH));
+	newTable[0]->val = newSize;
+
+	NodeH* curr;
+	NodeH* temp;
+	for (int i = 1; i <= table[0]->val; i++) {
+		curr = table[i];
+		while (curr) {
+			newTable = insertHash(curr->val, newTable);
+			temp = curr;
+			curr = curr->next;
+			free(temp);
+		}
+	}
+	return newTable;
+}
+
 NodeH** insertHash(int val, NodeH** table) {
+	//If no table was created so far we make one with size 2
 	if (!table) {
 		table = (NodeH**)calloc(3, sizeof(NodeH*));
 		table[0] = (NodeH*)malloc(sizeof(NodeH));
 		table[0]->val = 2;
 	}
 
+	//Variables we will need for alter
 	int tSize = table[0]->val;
 	int index = hash(val, tSize) + 1;
+	int depth = 1;
 	NodeH* curr;
 
 
@@ -40,10 +64,15 @@ NodeH** insertHash(int val, NodeH** table) {
 	if (!curr)
 		table[index] = newNodeH(val);
 	else {
-		while (curr->next)
+		while (curr->next) {
 			curr = curr->next;
+			depth++;
+		}
 		curr->next = newNodeH(val);
 	}
+
+	if (depth / tSize > 1)
+		table = resizeTable(table, tSize * 2);
 
 	return table;
 
@@ -66,7 +95,7 @@ void showTable(NodeH** table) {
 int main() {
 	NodeH** start = NULL;
 	
-	for (int i = 4526; i < 4557; i++)
+	for (int i = 0; i < 500; i++)
 		start = insertHash(i, start);
 	showTable(start);
 	return 0;
