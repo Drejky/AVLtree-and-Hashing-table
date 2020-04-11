@@ -186,3 +186,14 @@ Node* searchAVL(Node* curr, int x) {
 	}
 	return NULL;
 }
+
+//To free the entire tree
+void del_tree(Node* curr) {
+	if (!curr)
+		return;
+	if (curr->left)
+		del_tree(curr->left);
+	if (curr->right)
+		del_tree(curr->right);
+	free(curr);
+}
