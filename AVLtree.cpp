@@ -37,6 +37,11 @@ Node* newNode(int val) {
 	return temp;
 }
 
+Node* fixHeight(Node* curr) {
+	curr->height = 1 + max(height(curr->left), height(curr->right));
+	return curr;
+}
+
 //Functions for rotations in our tree
 Node* LLrotate(Node *curr) {
 	//Save nodes that would otherwise be lost in temporary variables
@@ -48,8 +53,8 @@ Node* LLrotate(Node *curr) {
 	newRoot->right->left = rightChild;
 
 	//Fix the heights of nodes that are affected
-	curr->height = 1 + max(height(curr->left), height(curr->right));
-	newRoot->height = 1 + max(height(newRoot->left), height(newRoot->right));
+	curr = fixHeight(curr);
+	newRoot = fixHeight(newRoot);
 	
 	//Return the root after rotation
 	return newRoot;
@@ -65,8 +70,8 @@ Node* RRrotate(Node *curr) {
 	newRoot->left->right = leftChild;
 
 	//Fix the heights of nodes that are affected
-	curr->height = 1 + max(height(curr->left), height(curr->right));
-	newRoot->height = 1 + max(height(newRoot->left), height(newRoot->right));
+	curr = fixHeight(curr);
+	newRoot = fixHeight(newRoot);
 	
 	//Return the root after rotation
 	return newRoot;
@@ -85,9 +90,9 @@ Node* LRrotate(Node *curr) {
 	newRoot->right->left = rightChild;
 
 	//Fix the heights of nodes that are affected
-	curr->height = 1 + max(height(curr->left), height(curr->right));
-	newRoot->left->height = 1 + max(height(newRoot->left->left), height(newRoot->left->right));
-	newRoot->height = 1 + max(height(newRoot->left), height(newRoot->right));
+	curr = fixHeight(curr);
+	newRoot = fixHeight(newRoot->left);
+	newRoot = fixHeight(newRoot);
 
 	//Return the root after rotation
 	return newRoot;
@@ -106,9 +111,9 @@ Node* RLrotate(Node *curr) {
 	newRoot->right->left = rightChild;
 
 	//Fix the heights of nodes that are affected
-	curr->height = 1 + max(height(curr->left), height(curr->right));
-	newRoot->right->height = 1 + max(height(newRoot->right->left), height(newRoot->right->right));
-	newRoot->height = 1 + max(height(newRoot->left), height(newRoot->right));
+	curr = fixHeight(curr);
+	newRoot = fixHeight(newRoot->right);
+	newRoot = fixHeight(newRoot);
 
 	//Return the root after rotation
 	return newRoot;

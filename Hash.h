@@ -3,7 +3,11 @@ typedef struct hashNode {
 	int val;
 	hashNode* next;
 }NodeH;
-NodeH** insertHash(NodeH** table, int val);
-NodeH* searchHash(NodeH** table, int val);
-void freeTable(NodeH** table);
-void showTable(NodeH** table);
+typedef struct table {
+	int size;
+	NodeH** hash_arr;
+}HT;
+HT* insertHash(HT* table, int val);
+NodeH* searchHash(HT* table, int val);
+void freeTable(HT* table);
+void showTable(HT* table);

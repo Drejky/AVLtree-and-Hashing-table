@@ -8,7 +8,13 @@ typedef struct hashNode {
 	hashNode* next;
 }NodeH;
 
-//Hashing function
+typedef struct table {
+	int size;
+	int num_of_nodes;
+	NodeH** hash_arr;
+}HT;
+
+//Hashing function (polynomial accumulation)
 int hash(int val, int tSize) {
 	int hash = 0;
 	while (val > 0) {
@@ -36,16 +42,15 @@ NodeH* newNodeH(int val) {
 }
 
 //Function to free existing table
-void freeTable(NodeH** table) {
+void freeTable(HT* table) {
 	NodeH* curr;
 	NodeH* temp;
 
-	//Size of table is stored in its first node (actual size is size + 1)
-	int tSize = table[0]->val;		
+	int tSize = table->size;		
 	
 	//Goes through every node and and frees them 
-	for (int i = 1; i <= tSize; i++) {
-		curr = table[i];
+	for (int i = 0; i < tSize; i++) {
+		curr = table->hash_arr[i];
 		while (curr) {
 			temp = curr;
 			curr = curr->next;
@@ -53,26 +58,27 @@ void freeTable(NodeH** table) {
 		}
 	}
 
-	//Seperately frees the first node holding the size and the table itself
-	free(table[0]);
+	//Seperately frees the array and the table itself
+	free(table->hash_arr);
 	free(table);
 }
 
 //Forward decleration
-NodeH** insertHash(NodeH** table, int val);
+HT* insertHash(HT* table, int val);
 
 //Function to resize existing table
-NodeH** resizeTable(NodeH** table, int newSize) {
+HT* resizeTable(HT* table, int newSize) {
 	//Initializing new table
-	NodeH** newTable = (NodeH**)calloc(newSize + 1, sizeof(NodeH*));
-	newTable[0] = (NodeH*)malloc(sizeof(NodeH));
-	newTable[0]->val = newSize;
+	HT* newTable = (HT*)calloc(1, sizeof(HT));
+	newTable->hash_arr = (NodeH**)calloc(newSize, sizeof(NodeH*));
+	newTable->size= newSize;
+	newTable->num_of_nodes = 0;
 
 	NodeH* curr;
-	int tSize = table[0]->val;
+	int tSize = table->size;
 
-	for (int i = 1; i <= tSize; i++) {
-		curr = table[i];
+	for (int i = 0; i < tSize; i++) {
+		curr = table->hash_arr[i];
 		while (curr) {
 			newTable = insertHash(newTable, curr->val);
 			curr = curr->next;
@@ -87,37 +93,39 @@ NodeH** resizeTable(NodeH** table, int newSize) {
 }
 
 //Function to insert into the table (or if table doesnt exist create one with size 2)
-NodeH** insertHash(NodeH** table, int val) {
+HT* insertHash(HT* table, int val) {
 	//If no table was created so far we make one with size 2
 	if (!table) {
-		table = (NodeH**)calloc(3, sizeof(NodeH*));
-		table[0] = (NodeH*)malloc(sizeof(NodeH));
-		table[0]->val = 2;
+		table = (HT*)calloc(1, sizeof(HT));
+		table->hash_arr = (NodeH**)calloc(2, sizeof(NodeH*));
+		table->size = 2;	
+		table->num_of_nodes = 0;
 	}
 
 	//Variables we will need for later
-	int tSize = table[0]->val;
-	int index = hash(val, tSize) + 1;
-	int depth = 1;
+	int tSize = table->size;
+	int index = hash(val, tSize);
 	NodeH* curr;
 
 	//Putting pointer on the index our hash function returned
-	curr = table[index];
+	curr = table->hash_arr[index];
 	
 	//Checking if there are already existing nodes on the index, if not we simply insert it
 	if (!curr)
-		table[index] = newNodeH(val);
+		table->hash_arr[index] = newNodeH(val);
 	//Otherwise we go through the linked list on given index and insert it at the end
 	else {
 		while (curr->next) {
 			curr = curr->next;
-			depth++;
 		}
 		curr->next = newNodeH(val);
 	}
 
+	//Increasing the counter for nodes
+	table->num_of_nodes++;
+
 	//If needed we expand the table to the next prime nubmer bigger than 2*current size
-	if ((float)depth / (float)tSize > 0.02) {
+	if ((float)table->num_of_nodes / (float)tSize > 2) {
 		int temp = 2 * tSize;
 		while (!isPrime(temp++));
 		table = resizeTable(table, --temp);
@@ -126,15 +134,14 @@ NodeH** insertHash(NodeH** table, int val) {
 }
 
 //Search function for the table
-NodeH* searchHash(NodeH** table, int val) {
+NodeH* searchHash(HT* table, int val) {
 	if (!table)
 		return NULL;
 
-	int tSize = table[0]->val;
-	int index = hash(val, tSize) + 1;
+	int index = hash(val, table->size);
 	NodeH* curr;
 
-	curr = table[index];
+	curr = table->hash_arr[index];
 	while (curr) {
 		if (curr->val == val)
 			return curr;
@@ -146,11 +153,11 @@ NodeH* searchHash(NodeH** table, int val) {
 }
 
 //Function to print out the table
-void showTable(NodeH** table) {
-	printf("%d\n", table[0]->val);
+void showTable(HT* table) {
+	printf("%d\n", table->size);
 	NodeH* curr;
-	for (int i = 1; i <= table[0]->val; i++) {
-		curr = table[i];
+	for (int i = 0; i < table->size; i++) {
+		curr = table->hash_arr[i];
 		while (curr) {
 			printf("%d ", curr->val);
 			curr = curr->next;
