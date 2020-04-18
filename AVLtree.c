@@ -3,13 +3,13 @@
 #include <stdlib.h>
 #include <string.h>
 
-typedef struct node {
+typedef struct AVLNode {
 	int val;
 	int height;
 
-	node* left;
-	node* right;
-}Node;
+	AVLNode* left;
+	AVLNode* right;
+}NodeA;
 
 //Simple function for comparing ints
 int max(int a, int b) {
@@ -20,7 +20,7 @@ int max(int a, int b) {
 }
 
 //Returns the height of a node, needed to return 0 if there is no node
-int height(Node* curr) {
+int height(NodeA* curr) {
 	if (!curr)
 		return 0;
 	else
@@ -28,8 +28,8 @@ int height(Node* curr) {
 }
 
 //Create a new node
-Node* newNode(int val) {
-	Node* temp = (Node*)malloc(sizeof(Node));
+NodeA* newNode(int val) {
+	NodeA* temp = (NodeA*)malloc(sizeof(NodeA));
 	temp->right = NULL;
 	temp->left = NULL;
 	temp->val = val;
@@ -37,16 +37,17 @@ Node* newNode(int val) {
 	return temp;
 }
 
-Node* fixHeight(Node* curr) {
+//Fixes the height of given node
+NodeA* fixHeight(NodeA* curr) {
 	curr->height = 1 + max(height(curr->left), height(curr->right));
 	return curr;
 }
 
 //Functions for rotations in our tree
-Node* LLrotate(Node *curr) {
+NodeA* LLrotate(NodeA*curr) {
 	//Save nodes that would otherwise be lost in temporary variables
-	Node* newRoot = curr->left;
-	Node* rightChild = newRoot->right;
+	NodeA* newRoot = curr->left;
+	NodeA* rightChild = newRoot->right;
 
 	//Preform the LL rotation
 	newRoot->right = curr;
@@ -60,10 +61,10 @@ Node* LLrotate(Node *curr) {
 	return newRoot;
 }
 
-Node* RRrotate(Node *curr) {
+NodeA* RRrotate(NodeA*curr) {
 	//Save nodes that would otherwise be lost in temporary variables
-	Node* newRoot = curr->right;
-	Node* leftChild = newRoot->left;
+	NodeA* newRoot = curr->right;
+	NodeA* leftChild = newRoot->left;
 
 	//Preform the RR rotation
 	newRoot->left = curr;
@@ -77,11 +78,11 @@ Node* RRrotate(Node *curr) {
 	return newRoot;
 }
 
-Node* LRrotate(Node *curr) {
+NodeA* LRrotate(NodeA*curr) {
 	//Save nodes that would otherwise be lost in temporary variables
-	Node* newRoot = curr->left->right;
-	Node* leftChild = newRoot->left;
-	Node* rightChild = newRoot->right;
+	NodeA* newRoot = curr->left->right;
+	NodeA* leftChild = newRoot->left;
+	NodeA* rightChild = newRoot->right;
 
 	//Preform the LR rotation
 	newRoot->left = curr->left;
@@ -98,11 +99,11 @@ Node* LRrotate(Node *curr) {
 	return newRoot;
 }
 
-Node* RLrotate(Node *curr) {
+NodeA* RLrotate(NodeA*curr) {
 	//Save nodes that would otherwise be lost in temporary variables
-	Node* newRoot = curr->right->left;
-	Node* leftChild = newRoot->left;
-	Node* rightChild = newRoot->right;
+	NodeA* newRoot = curr->right->left;
+	NodeA* leftChild = newRoot->left;
+	NodeA* rightChild = newRoot->right;
 
 	//Preform the RL rotation
 	newRoot->right = curr->right;
@@ -120,7 +121,7 @@ Node* RLrotate(Node *curr) {
 }
 
 //Function to check whether a node is ballanced and preform rotation if it isnt
-Node* balance(Node* curr, int val) {
+NodeA* balance(NodeA* curr, int val) {
 	//Calculating the balance factor for node
 	int bal = height(curr->left) - height(curr->right);
 
@@ -149,7 +150,7 @@ Node* balance(Node* curr, int val) {
 }
 
 //Insert function
-Node* insertAVL(Node *curr, int val) {
+NodeA* insertAVL(NodeA*curr, int val) {
 	//Recursively insert node until we find free spot for it
 	if (curr) {
 		if (curr->val > val) {
@@ -180,7 +181,7 @@ Node* insertAVL(Node *curr, int val) {
 }
 
 //The trees search function
-Node* searchAVL(Node* curr, int x) {
+NodeA* searchAVL(NodeA* curr, int x) {
 	while (curr) {
 		if (curr->val == x)
 			return curr;
@@ -193,7 +194,7 @@ Node* searchAVL(Node* curr, int x) {
 }
 
 //To free the entire tree
-void del_tree(Node* curr) {
+void del_tree(NodeA* curr) {
 	if (!curr)
 		return;
 	if (curr->left)

@@ -1,11 +1,11 @@
 #pragma once
-typedef struct node {
+typedef struct AVLNode {
 	int val;
 	int height;
 
-	node* left;
-	node* right;
-}Node;
-Node* insertAVL(Node *curr, int val);
-Node* searchAVL(Node* curr, int x);
-void del_tree(Node* curr);
+	AVLNode* left;
+	AVLNode* right;
+}NodeA;
+NodeA* insertAVL(NodeA* curr, int val);
+NodeA* searchAVL(NodeA* curr, int x);
+void del_tree(NodeA* curr);

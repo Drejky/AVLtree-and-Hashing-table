@@ -14,15 +14,20 @@ typedef struct table {
 	NodeH** hash_arr;
 }HT;
 
+
 //Hashing function (polynomial accumulation)
-int hash(int val, int tSize) {
-	int hash = 0;
-	while (val > 0) {
+int hash(int key, int tSize) {/*
+	long long unsigned int hash = 0;
+	while (val != 0) {
 		hash = (hash * 31) + (val % 10);
 		val /= 10;
-		hash %= tSize;
+		//hash %= tSize;
 	}
-	return hash;
+	return hash % tSize;*/
+	int temp = key % tSize;
+	if (temp < 0)
+		temp *= -1;
+	return temp;
 }
 
 //Function to check if a number is prime
@@ -45,6 +50,9 @@ NodeH* newNodeH(int val) {
 void freeTable(HT* table) {
 	NodeH* curr;
 	NodeH* temp;
+
+	if (!table)
+		return;
 
 	int tSize = table->size;		
 	
@@ -125,7 +133,7 @@ HT* insertHash(HT* table, int val) {
 	table->num_of_nodes++;
 
 	//If needed we expand the table to the next prime nubmer bigger than 2*current size
-	if ((float)table->num_of_nodes / (float)tSize > 2) {
+	if ((float)table->num_of_nodes / (float)tSize > 0.5) {
 		int temp = 2 * tSize;
 		while (!isPrime(temp++));
 		table = resizeTable(table, --temp);
